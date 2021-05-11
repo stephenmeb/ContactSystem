@@ -1,5 +1,3 @@
-
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,10 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Phone {
-	public static final String HOME = "home";
-	public static final String MOBILE = "mobile";
-
-	private String number;
+		private String number;
 	private String type;
 
 	Phone(String number) {
@@ -21,14 +16,6 @@ public class Phone {
 	Phone(String number, String type) {
 		this.number = number;
 		this.type = type;
-	}
-
-	boolean isHome() {
-		return Phone.HOME.equals(type);
-	}
-
-	boolean isMobile() {
-		return Phone.MOBILE.equals(type);
 	}
 
 	void addToDatabase(Connection connection, String contactId) throws SQLException
@@ -86,7 +73,7 @@ public class Phone {
 				type);
 	}
 
-	static void deleteHomeFromDatabase(Connection connection, String contactId) throws SQLException
+	static void deleteFromDatabase(Connection connection, String contactId) throws SQLException
 	{
 		//------------------------
 		// In a production system, sanitization, validation and security checking code would go here
@@ -95,12 +82,11 @@ public class Phone {
 		DatabaseUtility.executePreparedStatement(
 				connection,
 				"DELETE phone " +
-				"WHERE contact_id = ? " +
-				"AND type = 'home'",
+				"WHERE contact_id = ? ",
 				contactId);
 	}
 
-	static void deleteMobileFromDatabase(Connection connection, String contactId) throws SQLException
+	static void deleteFromDatabase(Connection connection, String contactId, String phoneType) throws SQLException
 	{
 		//------------------------
 		// In a production system, sanitization, validation and security checking code would go here
@@ -110,7 +96,12 @@ public class Phone {
 				connection,
 				"DELETE phone " +
 				"WHERE contact_id = ? " +
-				"AND type = 'mobile'",
-				contactId);
+				"AND type = ? ",
+				contactId,
+				phoneType);
+	}
+
+	String getType() {
+		return type;
 	}
 }
