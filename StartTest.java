@@ -1,5 +1,3 @@
-
-
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -103,7 +101,7 @@ class StartTest {
 	void testGetSpecificContact() throws Exception {
 		Contact contact = Contact.getContact(DatabaseUtility.getConnection(), "2");
 
-		assert("2".equals(contact.getId()));
+		assert(2 == contact.getId());
 	}
 
 	/**
