@@ -1,5 +1,3 @@
-
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,7 +21,7 @@ public class CallListContact {
 				"LEFT JOIN name    pn ON pn.contact_id = pc.contact_id " +
 				"LEFT JOIN address a  ON a.contact_id = pc.contact_id " +
 				"JOIN phone        p  ON p.contact_id = pc.contact_id " +
-				"WHERE p.type = '" + Phone.HOME + "' " +
+				"WHERE p.type = '" + PhoneType.HOME.getValue() + "' " +
 				"ORDER BY last, first");
 				ResultSet resultSet = stmt.executeQuery();)
 		{
