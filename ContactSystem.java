@@ -1,5 +1,3 @@
-
-
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -158,7 +156,7 @@ public class ContactSystem {
 			Gson gson = new Gson();
 
 			Contact contact = gson.fromJson(jsonString, Contact.class);
-			contact.setId(relativeInputURL.split("/")[2]);
+			contact.setId(Integer.parseInt(relativeInputURL.split("/")[2]));
 
 			contact.updateInDatabase(connection);
 
