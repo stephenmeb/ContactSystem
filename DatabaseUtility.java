@@ -1,5 +1,3 @@
-
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -85,4 +83,20 @@ public class DatabaseUtility {
 		return null;
 	}
 
+	/**
+	 * encapsulate try-catch boilerplate code
+	 * @param connection
+	 * @param sql
+	 * @return
+	 * @throws SQLException
+	 */
+	public static int selectInt(Connection connection, String sql) throws SQLException {
+		try(PreparedStatement stmt = connection.prepareStatement(sql);
+			ResultSet resultSet = stmt.executeQuery();)
+		{
+			resultSet.next();
+
+			return resultSet.getInt(1);
+		}
+	}
 }
