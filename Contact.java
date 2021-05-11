@@ -1,5 +1,3 @@
-
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Contact {
-	private String id;
+	private int id;
 	private Name name;
 	private Address address;
 	private List<Phone> phone;
@@ -17,7 +15,7 @@ public class Contact {
 	Contact() {
 	}
 
-	Contact(String contactId, Name name, Address address, List<Phone> phone, String email) {
+	Contact(int contactId, Name name, Address address, List<Phone> phone, String email) {
 		this.id = contactId;
 		this.name = name;
 		this.address = address;
@@ -25,7 +23,7 @@ public class Contact {
 		this.email = email;
 	}
 
-	void setId(String id) {
+	void setId(int id) {
 		this.id = id;
 	}
 
@@ -35,26 +33,26 @@ public class Contact {
 		// In a production system, sanitization, validation and security checking code would go here
 		//------------------------
 
-		id = DatabaseUtility.selectString(connection, "SELECT contact_id.nextval");
+		id = DatabaseUtility.selectInt(connection, "SELECT contact_id.nextval");
 
 		if(name != null) {
-			name.addToDatabase(connection, id);
+			name.addToDatabase(connection, getIdAsString());
 		}
 
 		if(address != null) {
-			address.addToDatabase(connection, id);
+			address.addToDatabase(connection, getIdAsString());
 		}
 
 		if(phone != null) {
 			for(Phone currentPhone: phone) {
-				currentPhone.addToDatabase(connection, id);
+				currentPhone.addToDatabase(connection, getIdAsString());
 			}
 		}
 
 		DatabaseUtility.executePreparedStatement(
 				connection,
 				"INSERT INTO contact(contact_id, email_address) VALUES (?, ?)",
-				id,
+				getIdAsString(),
 				email);
 	}
 
@@ -65,42 +63,44 @@ public class Contact {
 		//------------------------
 
 		if(name == null) {
-			Name.deleteFromDatabase(connection, id);
+			Name.deleteFromDatabase(connection, getIdAsString());
 		} else {
-			if(name.updateInDatabase(connection, id) == 0) {
-				name.addToDatabase(connection, id);
+			if(name.updateInDatabase(connection, getIdAsString()) == 0) {
+				name.addToDatabase(connection, getIdAsString());
 			}
 		}
 
 		if(address == null) {
-			Address.deleteFromDatabase(connection, id);
+			Address.deleteFromDatabase(connection, getIdAsString());
 		} else {
-			if(address.updateInDatabase(connection, id) == 0) {
-				address.addToDatabase(connection, id);
+			if(address.updateInDatabase(connection, getIdAsString()) == 0) {
+				address.addToDatabase(connection, getIdAsString());
 			}
 		}
 
-		boolean deleteHomePhone = true;
-		boolean deleteMobilePhone = true;
+		List<String> savedPhoneTypes = new ArrayList<>();
 
 		for(Phone currentPhone: phone) {
-			if(currentPhone.isHome()) {
-				deleteHomePhone = false;
-			} else if(currentPhone.isMobile()) {
-				deleteMobilePhone = false;
-			}
+			savedPhoneTypes.add(currentPhone.getType());
 
-			if(currentPhone.updateInDatabase(connection, id) == 0) {
-				currentPhone.addToDatabase(connection, id);
+			if(currentPhone.updateInDatabase(connection, getIdAsString()) == 0) {
+				currentPhone.addToDatabase(connection, getIdAsString());
 			}
 		}
 
-		if(deleteHomePhone) {
-			Phone.deleteHomeFromDatabase(connection, id);
-		}
+		for(PhoneType currentPhoneType: PhoneType.values()) {
+			boolean found = false;
+			for(String currentSavedPhoneType: savedPhoneTypes) {
+				if(currentPhoneType.matches(currentSavedPhoneType)) {
+					found = true;
 
-		if(deleteMobilePhone) {
-			Phone.deleteMobileFromDatabase(connection, id);
+					break;
+				}
+			}
+
+			if(!found) {
+				Phone.deleteFromDatabase(connection, getIdAsString(), currentPhoneType.getValue());
+			}
 		}
 
 		DatabaseUtility.executePreparedStatement(
@@ -109,7 +109,7 @@ public class Contact {
 				"    email_address = ? " +
 				"WHERE contact_id = ? ",
 				email,
-				id);
+				getIdAsString());
 	}
 
 	static void deleteFromDatabase(Connection connection, String id) throws SQLException
@@ -120,8 +120,7 @@ public class Contact {
 
 		Name.deleteFromDatabase(connection, id);
 		Address.deleteFromDatabase(connection, id);
-		Phone.deleteHomeFromDatabase(connection, id);
-		Phone.deleteMobileFromDatabase(connection, id);
+		Phone.deleteFromDatabase(connection, id);
 		DatabaseUtility.executePreparedStatement(
 				connection,
 				"DELETE FROM contact " +
@@ -184,7 +183,7 @@ public class Contact {
 			List<Phone> phones = Phone.getPhoneData(connection, contactId);
 
 			personalContacts.add(new Contact(
-					contactId,
+					Integer.parseInt(contactId),
 					name,
 					address,
 					phones,
@@ -194,8 +193,12 @@ public class Contact {
 		return personalContacts;
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
+	}
+
+	public String getIdAsString() {
+		return String.valueOf(id);
 	}
 
 	public String getLastName() {
